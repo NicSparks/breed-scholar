@@ -55,7 +55,8 @@ def get_wikimedia_image_url(breed_name):
             for page_id, page_data in pages.items():
                 if 'imageinfo' in page_data:
                     return page_data['imageinfo'][0]['url']
-        except Exception:
+        except Exception as e:
+            print(f'  [!] Wikimedia API error: {e}')
             continue
     
     # Fallback: search for breed image
@@ -88,8 +89,8 @@ def get_wikimedia_image_url(breed_name):
             for page_id, page_data in pages.items():
                 if 'imageinfo' in page_data:
                     return page_data['imageinfo'][0]['url']
-    except Exception:
-        pass
+    except Exception as e:
+        print(f'  [!] Search fallback failed: {e}')
     
     return None
 
