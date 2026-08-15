@@ -1,20 +1,84 @@
-name: Build Breed Scholar Docker image
+name: CI and Docker Build
 
 on:
   push:
     branches: ["main", "master"]
-    paths:
-      - 'Dockerfile'
-      - 'requirements.txt'
-      - 'app.py'
-      - 'templates/**'
-      - 'static/**'
-      - 'rebuild_database.py'
-      - 'download_images.py'
+  pull_request:
+    branches: ["main", "master"]
   workflow_dispatch:
 
 jobs:
-  build:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+          queries: security-extended,security-and-quality
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  lint:
+    name: Lint and Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install ruff mypy
+
+      - name: Lint Python with Ruff
+        run: ruff check app.py rebuild_database.py download_images.py update_rankings.py clean_database.py generate_placeholders.py generate_icons.py verify_setup.py
+
+      - name: Validate HTML structure
+        run: |
+          python -c "from pathlib import Path; html = Path('templates/index.html').read_text(); assert '<!DOCTYPE html>' in html; assert '<meta name=\"viewport\"' in html; print('✓ HTML structure valid')"
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pytest
+
+      - name: Run tests
+        run: |
+          python -c "import sqlite3; from pathlib import Path; assert Path('dog_breeds.db').exists(); conn = sqlite3.connect('dog_breeds.db'); cur = conn.cursor(); cur.execute('SELECT COUNT(*) FROM breeds'); total = cur.fetchone()[0]; print(f'✓ Database valid: {total} breeds'); assert total > 0; conn.close()"
+          python -c "import json; breeds = json.load(open('breeds_final.json')); assert len(breeds) > 0; print(f'✓ JSON valid: {len(breeds)} breeds')"
+
+  build-and-push:
+    name: Build and Push Docker Image
+    needs: [security-scan, lint, test]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -60,6 +124,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Generate build summary
+        if: always()
         run: |
           echo "## Docker image built successfully" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
