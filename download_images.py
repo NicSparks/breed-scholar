@@ -51,7 +51,7 @@ def get_wikimedia_image_url(breed_name):
             resp = requests.get(api_url, params=params, headers=HEADERS, timeout=15)
             data = resp.json()
             pages = data.get('query', {}).get('pages', {})
-            for page_id, page_data in pages.items():
+            for page_data in pages.values():
                 if 'imageinfo' in page_data:
                     return page_data['imageinfo'][0]['url']
         except requests.RequestException:
@@ -84,7 +84,7 @@ def get_wikimedia_image_url(breed_name):
             resp = requests.get(api_url, params=params, headers=HEADERS, timeout=15)
             data = resp.json()
             pages = data.get('query', {}).get('pages', {})
-            for page_id, page_data in pages.items():
+            for page_data in pages.values():
                 if 'imageinfo' in page_data:
                     return page_data['imageinfo'][0]['url']
     except requests.RequestException:
@@ -118,7 +118,7 @@ def download_and_thumbnail(image_url, breed_id):
         thumb_square.save(thumb_path, 'JPEG', quality=80)
         
         return True
-    except Exception as e:
+    except (requests.RequestException, OSError, ValueError) as e:
         print(f'  [!] Failed: {e}')
         return False
 
