@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Generate iOS/PWA app icons."""
 from pathlib import Path
+
 from PIL import Image, ImageDraw, ImageFont
 
 BASE_DIR = Path('/root/breed-scholar/static')

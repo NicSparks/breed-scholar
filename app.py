@@ -1,6 +1,7 @@
-from flask import Flask, jsonify, request, render_template, send_file
 import sqlite3
 from pathlib import Path
+
+from flask import Flask, jsonify, render_template, request, send_file
 
 app = Flask(__name__)
 BASE_DIR = Path('/root/breed-scholar')

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Clean up data quality issues in the breed database."""
 
-import re
 import sqlite3
 from pathlib import Path
 
@@ -87,6 +86,6 @@ non = cur.execute('''
 
 conn.close()
 
-print(f"\n[✓] Database cleaned")
+print("\n[✓] Database cleaned")
 print(f"[✓] Total breeds: {total}")
 print(f"[✓] AKC: {akc}, FCI: {fci}, Non-Recog: {non}")

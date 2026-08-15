@@ -3,13 +3,13 @@
 and generate 200x200 thumbnails."""
 
 import argparse
-import re
 import sqlite3
 import time
 from pathlib import Path
 
 import requests
 from PIL import Image
+
 try:
     from PIL.Image import Resampling
     LANCZOS = Resampling.LANCZOS
@@ -19,7 +19,6 @@ except ImportError:
     except AttributeError:
         LANCZOS = 3
 from io import BytesIO
-
 
 BASE_DIR = Path('/root/breed-scholar')
 DB_PATH = BASE_DIR / 'dog_breeds.db'
@@ -55,7 +54,7 @@ def get_wikimedia_image_url(breed_name):
             for page_id, page_data in pages.items():
                 if 'imageinfo' in page_data:
                     return page_data['imageinfo'][0]['url']
-        except Exception:
+        except requests.RequestException:
             continue
     
     # Fallback: search for breed image
@@ -88,7 +87,7 @@ def get_wikimedia_image_url(breed_name):
             for page_id, page_data in pages.items():
                 if 'imageinfo' in page_data:
                     return page_data['imageinfo'][0]['url']
-    except Exception:
+    except requests.RequestException:
         pass
     
     return None
@@ -169,13 +168,13 @@ def main():
         
         if download_and_thumbnail(actual_url, breed_id):
             downloaded += 1
-            print(f'    [+] Downloaded')
+            print('    [+] Downloaded')
         else:
             failed += 1
         
         time.sleep(0.5)
     
-    print(f'\n[*] Summary:')
+    print('\n[*] Summary:')
     print(f'    Downloaded: {downloaded}')
     print(f'    Skipped:    {skipped}')
     print(f'    Failed:     {failed}')

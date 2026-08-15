@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Crawl AKC popularity rankings page and update database."""
 
-import json
 import re
 import sqlite3
 import time
@@ -22,7 +21,7 @@ def fetch_page(url, retries=3):
             resp = requests.get(url, headers=HEADERS, timeout=30)
             resp.raise_for_status()
             return resp.text
-        except requests.RequestException as e:
+        except requests.RequestException:
             if attempt < retries - 1:
                 time.sleep(2 ** attempt)
     return None

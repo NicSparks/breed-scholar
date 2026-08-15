@@ -10,11 +10,10 @@ import re
 import sqlite3
 import time
 from pathlib import Path
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
-
 
 BASE_DIR = Path('/root/breed-scholar')
 DB_PATH = BASE_DIR / 'dog_breeds.db'
@@ -212,7 +211,7 @@ def populate_database(breed_data):
     
     registry_map = {'akc': 1, 'fci': 2, 'non': 3}
     
-    for name, breed in breed_data.items():
+    for breed in breed_data.values():
         cursor.execute('''
             INSERT OR REPLACE INTO breeds 
             (name, group_name, rank, country, size, fci_group, fact, tips, image_url, source_url)
@@ -268,7 +267,7 @@ def main():
         # Save raw data
         with open(BASE_DIR / 'akc_crawl_results.json', 'w') as f:
             json.dump(breed_data, f, indent=2, ensure_ascii=False)
-        print(f"[*] Saved crawl results to akc_crawl_results.json")
+        print("[*] Saved crawl results to akc_crawl_results.json")
     else:
         print("[!] No data source specified. Use --json-input or remove --skip-crawl")
         return
