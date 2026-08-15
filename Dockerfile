@@ -1,0 +1,19 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app.py rebuild_database.py download_images.py update_rankings.py ./
+COPY templates/ ./templates/
+COPY static/ ./static/
+
+EXPOSE 5000
+
+ENV DATABASE_URL=/data/dog_breeds.db
+ENV STATIC_DIR=/data/static
+
+VOLUME ["/data"]
+
+CMD ["python", "app.py"]

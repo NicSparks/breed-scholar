@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Test Render</title>
+<style>
+  body { background: #0a0a0f; color: #e8e8f0; font-family: sans-serif; padding: 20px; }
+  #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 10px; margin-top: 20px; }
+  .card { background: #14141f; border: 1px solid #252535; border-radius: 14px; padding: 10px; }
+  .name { font-weight: bold; font-size: 0.9em; }
+  .badge { font-size: 0.65em; padding: 3px 8px; border-radius: 10px; background: rgba(231,76,60,0.15); color: #e74c3c; }
+</style>
+</head>
+<body>
+<h1>Test Render</h1>
+<div id="grid"></div>
+
+<script>
+// Load just the first 10 breeds from the actual file
+const testBreeds = [
+  {"id":1,"name":"Abyssinian sand terrier","registry":"non","group":"","rank":null},
+  {"id":2,"name":"Affenpinscher","registry":"akc","group":"","rank":119},
+  {"id":3,"name":"Afghan Hound","registry":"akc","group":"","rank":null},
+  {"id":4,"name":"Braque d'Auvergne","registry":"fci","group":"","rank":null},
+  {"id":5,"name":"English Toy Terrier (Black & Tan)","registry":"akc","group":"","rank":null},
+  {"id":6,"name":"Cirneco dell'Etna","registry":"fci","group":"","rank":null},
+  {"id":7,"name":"King's White Hound","registry":"non","group":"","rank":null},
+  {"id":8,"name":"St. John's water dog","registry":"non","group":"","rank":null},
+  {"id":9,"name":"Segugio dell'Appennino","registry":"fci","group":"","rank":null},
+  {"id":10,"name":"Šarplaninac","registry":"fci","group":"","rank":null}
+];
+
+const grid = document.getElementById('grid');
+grid.innerHTML = testBreeds.map(b => `
+  <div class="card">
+    <div class="name">${b.name}</div>
+    <span class="badge">${b.registry.toUpperCase()}</span>
+  </div>
+`).join('');
+
+console.log('Rendered', testBreeds.length, 'test cards');
+</script>
+</body>
+</html>

@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🐕 Breed Scholar — Learn Every Dog Breed</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #0a0a0f;
+    --card: #14141f;
+    --card-2: #1a1a28;
+    --border: #252535;
+    --text: #e8e8f0;
+    --muted: #8888aa;
+    --dim: #5a5a72;
+    --akc: #e74c3c;
+    --fci: #3498db;
+    --non: #95a5a6;
+    --extinct: #7f8c8d;
+    --gold: #f1c40f;
+  }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+  .app { max-width: 720px; margin: 0 auto; padding: 12px; padding-bottom: 80px; }
+
+  /* Header */
+  .app-header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    margin: -12px -12px 0; padding: 12px 16px;
+  }
+  .app-title { font-size: 1.35em; font-weight: 700; color: var(--gold); letter-spacing: -0.3px; }
+  .app-subtitle { font-size: 0.75em; color: var(--muted); margin-top: 2px; }
+
+  /* Nav tabs */
+  .nav-tabs {
+    display: flex; gap: 6px; margin-top: 12px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab {
+    flex: 0 0 auto; padding: 8px 16px; border-radius: 20px;
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--muted); font-size: 0.85em; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .nav-tab.active { background: var(--gold); color: #0a0a0f; border-color: var(--gold); }
+  .nav-tab:active { transform: scale(0.96); }
+
+  /* Search bar */
+  .search-bar {
+    margin-top: 12px; position: relative;
+  }
+  .search-bar input {
+    width: 100%; padding: 12px 16px; border-radius: 12px;
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--text); font-size: 1em; outline: none;
+  }
+  .search-bar input::placeholder { color: var(--dim); }
+
+  /* Filter chips */
+  .filter-row {
+    display: flex; gap: 8px; margin-top: 10px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: 0 0 auto; padding: 6px 14px; border-radius: 16px;
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--muted); font-size: 0.8em; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .chip.active-akc { background: var(--akc); color: #fff; border-color: var(--akc); }
+  .chip.active-fci { background: var(--fci); color: #fff; border-color: var(--fci); }
+  .chip.active-non { background: var(--non); color: #0a0a0f; border-color: var(--non); }
+  .chip.active-extinct { background: var(--extinct); color: #fff; border-color: var(--extinct); }
+  .chip.active-all { background: var(--gold); color: #0a0a0f; border-color: var(--gold); }
+
+  /* Breed grid */
+  .breed-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 10px; margin-top: 16px;
+  }
+  .breed-card {
+    background: var(--card); border-radius: 14px;
+    overflow: hidden; border: 1px solid var(--border);
+    cursor: pointer; transition: transform 0.15s;
+  }
+  .breed-card:active { transform: scale(0.97); }
+  .breed-img {
+    width: 100%; height: 140px; object-fit: cover;
+    background: var(--card-2); display: block;
+  }
+  .breed-img-placeholder {
+    width: 100%; height: 140px;
+    background: linear-gradient(135deg, var(--card-2) 0%, var(--card) 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5em; color: var(--dim);
+  }
+  .breed-info { padding: 10px 12px; }
+  .breed-name {
+    font-weight: 700; font-size: 0.92em; color: var(--text);
+    margin-bottom: 4px; line-height: 1.3;
+  }
+  .breed-meta {
+    display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+  }
+  .badge {
+    padding: 3px 8px; border-radius: 10px;
+    font-size: 0.65em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .badge-akc { background: rgba(231,76,60,0.15); color: var(--akc); }
+  .badge-fci { background: rgba(52,152,219,0.15); color: var(--fci); }
+  .badge-non { background: rgba(149,165,166,0.15); color: var(--non); }
+  .badge-extinct { background: rgba(127,140,141,0.15); color: var(--extinct); }
+  .breed-group { font-size: 0.7em; color: var(--muted); }
+  .breed-rank {
+    font-size: 0.7em; font-weight: 700; color: var(--gold);
+    margin-left: auto;
+  }
+
+  /* Detail modal */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.85);
+    display: none; align-items: flex-end; justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card); border-radius: 24px 24px 0 0;
+    width: 100%; max-width: 720px; max-height: 88vh;
+    overflow-y: auto; border: 1px solid var(--border);
+    border-bottom: none;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .modal-img {
+    width: 100%; height: 260px; object-fit: cover;
+    background: var(--card-2);
+  }
+  .modal-body { padding: 20px; }
+  .modal-close {
+    position: absolute; top: 12px; right: 12px;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; font-size: 1.2em; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-title { font-size: 1.4em; font-weight: 700; margin-bottom: 6px; }
+  .modal-subtitle { font-size: 0.85em; color: var(--muted); margin-bottom: 14px; }
+  .modal-section {
+    background: var(--card-2); border-radius: 12px;
+    padding: 14px; margin-bottom: 10px;
+  }
+  .modal-section-title { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gold); margin-bottom: 8px; font-weight: 700; }
+  .modal-fact { font-size: 0.9em; color: var(--text); line-height: 1.6; }
+  .modal-meta-row {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .meta-item {
+    flex: 1; min-width: 100px; background: var(--card-2);
+    border-radius: 10px; padding: 12px; text-align: center;
+  }
+  .meta-value { font-size: 1.2em; font-weight: 700; color: var(--gold); }
+  .meta-label { font-size: 0.7em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; margin-top: 2px; }
+
+  /* Flashcard */
+  .flashcard-container {
+    perspective: 1000px; width: 100%; height: 420px;
+    margin: 20px auto; cursor: pointer;
+  }
+  .flashcard {
+    width: 100%; height: 100%;
+    position: relative; transform-style: preserve-3d;
+    transition: transform 0.5s;
+  }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .flashcard-face {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    border-radius: 20px; overflow: hidden;
+    background: var(--card); border: 1px solid var(--border);
+    display: flex; flex-direction: column;
+  }
+  .flashcard-back { transform: rotateY(180deg); }
+  .flashcard-img {
+    width: 100%; height: 240px; object-fit: cover;
+    background: var(--card-2);
+  }
+  .flashcard-content {
+    padding: 20px; flex: 1; display: flex;
+    flex-direction: column; justify-content: center; align-items: center;
+    text-align: center;
+  }
+  .flashcard-label {
+    font-size: 0.75em; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--muted); margin-bottom: 6px;
+  }
+  .flashcard-name { font-size: 1.5em; font-weight: 700; color: var(--text); }
+  .flashcard-hint {
+    font-size: 0.8em; color: var(--dim);
+    margin-top: 10px; font-style: italic;
+  }
+  .flashcard-controls {
+    display: flex; gap: 10px; justify-content: center;
+    margin-top: 16px;
+  }
+  .btn {
+    padding: 12px 24px; border-radius: 24px;
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--text); font-weight: 600; font-size: 0.9em;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-primary { background: var(--gold); color: #0a0a0f; border-color: var(--gold); }
+  .btn-danger { background: var(--akc); color: #fff; border-color: var(--akc); }
+
+  /* Quiz */
+  .quiz-img {
+    width: 100%; max-height: 320px; object-fit: cover;
+    border-radius: 16px; background: var(--card-2);
+  }
+  .quiz-options {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-top: 16px;
+  }
+  .quiz-option {
+    padding: 16px; border-radius: 14px;
+    background: var(--card); border: 2px solid var(--border);
+    color: var(--text); font-size: 0.9em; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .quiz-option:active { transform: scale(0.97); }
+  .quiz-option.correct { border-color: #27ae60; background: rgba(39,174,96,0.15); }
+  .quiz-option.wrong { border-color: var(--akc); background: rgba(231,76,60,0.15); }
+  .quiz-option:disabled { opacity: 0.6; cursor: not-allowed; }
+  .quiz-score {
+    text-align: center; padding: 14px;
+    background: var(--card-2); border-radius: 14px;
+    margin-bottom: 14px;
+  }
+  .quiz-score-value { font-size: 1.6em; font-weight: 700; color: var(--gold); }
+  .quiz-score-label { font-size: 0.75em; color: var(--muted); text-transform: uppercase; }
+
+  /* Stats bar */
+  .stats-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 8px; margin: 14px 0;
+  }
+  .stat-item {
+    background: var(--card); border-radius: 12px;
+    padding: 12px 8px; text-align: center;
+    border: 1px solid var(--border);
+  }
+  .stat-value { font-size: 1.3em; font-weight: 700; }
+  .stat-label { font-size: 0.65em; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
+  .stat-item.s1 .stat-value { color: var(--akc); }
+  .stat-item.s2 .stat-value { color: var(--fci); }
+  .stat-item.s3 .stat-value { color: var(--non); }
+  .stat-item.s4 .stat-value { color: var(--extinct); }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center; padding: 40px 20px;
+    color: var(--dim);
+  }
+  .empty-state-icon { font-size: 3em; margin-bottom: 12px; }
+  .empty-state-text { font-size: 0.95em; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* Responsive */
+  @media (max-width: 400px) {
+    .breed-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .quiz-options { grid-template-columns: 1fr; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="app-header">
+    <div class="app-title">🐕 Breed Scholar</div>
+    <div class="app-subtitle">Learn every dog breed — photos, flashcards, quiz</div>
+    <div class="nav-tabs">
+      <div class="nav-tab active" data-tab="browse">Browse</div>
+      <div class="nav-tab" data-tab="flashcard">Flashcards</div>
+      <div class="nav-tab" data-tab="quiz">Quiz</div>
+      <div class="nav-tab" data-tab="stats">Stats</div>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search breeds..." autocomplete="off">
+    </div>
+    <div class="filter-row" id="filterRow">
+      <div class="chip active-all" data-filter="all">All</div>
+      <div class="chip" data-filter="akc">AKC</div>
+      <div class="chip" data-filter="fci">FCI</div>
+      <div class="chip" data-filter="non">Non-Recog</div>
+      <div class="chip" data-filter="extinct">Extinct</div>
+    </div>
+  </div>
+
+  <!-- BROWSE MODE -->
+  <div id="browseMode" class="mode">
+    <div class="stats-bar" id="browseStats"></div>
+    <div class="breed-grid" id="breedGrid"></div>
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <div class="empty-state-icon">🔍</div>
+      <div class="empty-state-text">No breeds match your search</div>
+    </div>
+  </div>
+
+  <!-- FLASHCARD MODE -->
+  <div id="flashcardMode" class="mode" style="display:none;">
+    <div class="flashcard-container" id="flashcardContainer">
+      <div class="flashcard" id="flashcard">
+        <div class="flashcard-face flashcard-front">
+          <img class="flashcard-img" id="fcImg" src="" alt="">
+          <div class="flashcard-content">
+            <div class="flashcard-label">What breed is this?</div>
+            <div class="flashcard-name" id="fcName">—</div>
+            <div class="flashcard-hint">Tap to reveal</div>
+          </div>
+        </div>
+        <div class="flashcard-face flashcard-back">
+          <div class="flashcard-content">
+            <div class="flashcard-label" id="fcRegistry">AKC</div>
+            <div class="flashcard-name" id="fcNameBack">—</div>
+            <div class="flashcard-hint" id="fcHint"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="flashcard-controls">
+      <button class="btn" id="fcPrev">← Prev</button>
+      <button class="btn btn-primary" id="fcShuffle">🔀 Shuffle</button>
+      <button class="btn" id="fcNext">Next →</button>
+    </div>
+  </div>
+
+  <!-- QUIZ MODE -->
+  <div id="quizMode" class="mode" style="display:none;">
+    <div class="quiz-score">
+      <div class="quiz-score-value" id="quizScore">0 / 0</div>
+      <div class="quiz-score-label">Correct Answers</div>
+    </div>
+    <img class="quiz-img" id="quizImg" src="" alt="Quiz breed">
+    <div class="quiz-options" id="quizOptions"></div>
+    <div class="flashcard-controls" style="margin-top:18px;">
+      <button class="btn btn-primary" id="quizNext">Next Question →</button>
+    </div>
+  </div>
+
+  <!-- STATS MODE -->
+  <div id="statsMode" class="mode" style="display:none;">
+    <div class="stats-bar" id="statsBar"></div>
+    <div class="modal-section" style="margin-top:14px;">
+      <div class="modal-section-title">📊 Registry Breakdown</div>
+      <div id="statsContent" style="font-size:0.9em;color:var(--text);line-height:1.8;"></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">🏆 Top 10 AKC Breeds (2025)</div>
+      <div id="top10List" style="font-size:0.9em;color:var(--text);line-height:1.8;"></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">📈 Learning Progress</div>
+      <div id="progressContent" style="font-size:0.9em;color:var(--text);line-height:1.8;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <button class="modal-close" id="modalClose">✕</button>
+    <img class="modal-img" id="modalImg" src="" alt="">
+    <div class="modal-body">
+      <div class="modal-title" id="modalTitle">Breed Name</div>
+      <div class="modal-subtitle" id="modalSubtitle">Group • Registry</div>
+      <div class="modal-meta-row" id="modalMeta"></div>
+      <div class="modal-section">
+        <div class="modal-section-title">About</div>
+        <div class="modal-fact" id="modalFact">—</div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Identification Tips</div>
+        <div class="modal-fact" id="modalTips">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== BREED DATA =====
+// This will be populated by the build script
+let BREEDS = [];
+let filteredBreeds = [];
+let currentFilter = 'all';
+let searchQuery = '';
+let fcIndex = 0;
+let fcOrder = [];
+let quizState = { score: 0, total: 0, current: null };
+let learnedSet = new Set();
+
+// ===== IMAGE HELPERS =====
+function getBreedImage(breed) {
+  if (breed.image) return breed.image;
+  return generatePlaceholder(breed.name);
+}
+
+function generatePlaceholder(name) {
+  const initial = name.charAt(0).toUpperCase();
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200">
+    <rect width="300" height="200" fill="#1a1a28"/>
+    <text x="150" y="105" font-family="sans-serif" font-size="72" fill="#3a3a52" text-anchor="middle">${initial}</text>
+  </svg>`;
+  return 'data:image/svg+xml;base64,' + btoa(svg);
+}
+
+// ===== RENDER BROWSE =====
+function renderBrowse() {
+  const grid = document.getElementById('breedGrid');
+  const empty = document.getElementById('emptyState');
+  const stats = document.getElementById('browseStats');
+
+  filteredBreeds = BREEDS.filter(b => {
+    const matchFilter = currentFilter === 'all' || b.registry === currentFilter;
+    const matchSearch = !searchQuery || b.name.toLowerCase().includes(searchQuery) || (b.group && b.group.toLowerCase().includes(searchQuery));
+    return matchFilter && matchSearch;
+  });
+
+  // Stats
+  const counts = { akc: 0, fci: 0, non: 0, extinct: 0 };
+  BREEDS.forEach(b => { if (counts[b.registry] !== undefined) counts[b.registry]++; });
+  stats.innerHTML = `
+    <div class="stat-item s1"><div class="stat-value">${counts.akc}</div><div class="stat-label">AKC</div></div>
+    <div class="stat-item s2"><div class="stat-value">${counts.fci}</div><div class="stat-label">FCI</div></div>
+    <div class="stat-item s3"><div class="stat-value">${counts.non}</div><div class="stat-label">Non-Recog</div></div>
+    <div class="stat-item s4"><div class="stat-value">${counts.extinct}</div><div class="stat-label">Extinct</div></div>
+  `;
+
+  if (filteredBreeds.length === 0) {
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  grid.style.display = 'grid';
+  empty.style.display = 'none';
+
+  grid.innerHTML = filteredBreeds.map(breed => {
+    const badgeClass = breed.registry === 'akc' ? 'badge-akc' : breed.registry === 'fci' ? 'badge-fci' : breed.registry === 'extinct' ? 'badge-extinct' : 'badge-non';
+    const badgeText = breed.registry.toUpperCase();
+    const imgSrc = getBreedImage(breed);
+    const rankText = breed.rank ? `#${breed.rank}` : '';
+    return `
+      <div class="breed-card" data-id="${breed.id}">
+        <img class="breed-img" src="${imgSrc}" alt="${breed.name}" loading="lazy" onerror="this.outerHTML='<div class=\\'breed-img-placeholder\\'>🐕</div>'">
+        <div class="breed-info">
+          <div class="breed-name">${breed.name}</div>
+          <div class="breed-meta">
+            <span class="badge ${badgeClass}">${badgeText}</span>
+            <span class="breed-group">${breed.group || ''}</span>
+            <span class="breed-rank">${rankText}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Click handlers
+  grid.querySelectorAll('.breed-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = parseInt(card.dataset.id);
+      const breed = BREEDS.find(b => b.id === id);
+      if (breed) openDetail(breed);
+    });
+  });
+}
+
+// ===== DETAIL MODAL =====
+function openDetail(breed) {
+  const modal = document.getElementById('detailModal');
+  document.getElementById('modalImg').src = getBreedImage(breed);
+  document.getElementById('modalTitle').textContent = breed.name;
+  document.getElementById('modalSubtitle').textContent = `${breed.group || '—'} • ${breed.registry.toUpperCase()}`;
+  document.getElementById('modalFact').textContent = breed.fact || 'No additional information available.';
+  document.getElementById('modalTips').textContent = breed.tips || 'Study the breed\'s distinctive features: coat type, size, ear shape, and tail carriage.';
+
+  const meta = document.getElementById('modalMeta');
+  const items = [];
+  if (breed.rank) items.push(`<div class="meta-item"><div class="meta-value">#${breed.rank}</div><div class="meta-label">AKC Rank</div></div>`);
+  if (breed.country) items.push(`<div class="meta-item"><div class="meta-value">${breed.country}</div><div class="meta-label">Origin</div></div>`);
+  if (breed.size) items.push(`<div class="meta-item"><div class="meta-value">${breed.size}</div><div class="meta-label">Size</div></div>`);
+  if (breed.fciGroup) items.push(`<div class="meta-item"><div class="meta-value">FCI ${breed.fciGroup}</div><div class="meta-label">FCI Group</div></div>`);
+  meta.innerHTML = items.join('');
+
+  modal.classList.add('open');
+  learnedSet.add(breed.id);
+  saveProgress();
+}
+
+document.getElementById('modalClose').addEventListener('click', () => {
+  document.getElementById('detailModal').classList.remove('open');
+});
+document.getElementById('detailModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) document.getElementById('detailModal').classList.remove('open');
+});
+
+// ===== FLASHCARD =====
+function initFlashcards() {
+  if (fcOrder.length !== filteredBreeds.length) {
+    fcOrder = filteredBreeds.map((_, i) => i);
+    shuffleArray(fcOrder);
+  }
+  fcIndex = Math.min(fcIndex, fcOrder.length - 1);
+  if (fcIndex < 0) fcIndex = 0;
+  renderFlashcard();
+}
+
+function renderFlashcard() {
+  if (fcOrder.length === 0) return;
+  const idx = fcOrder[fcIndex];
+  const breed = filteredBreeds[idx];
+  if (!breed) return;
+
+  document.getElementById('fcImg').src = getBreedImage(breed);
+  document.getElementById('fcName').textContent = breed.name;
+  document.getElementById('fcNameBack').textContent = breed.name;
+  document.getElementById('fcRegistry').textContent = breed.registry.toUpperCase();
+  document.getElementById('fcHint').textContent = `${breed.group || '—'} • ${breed.country || 'Unknown origin'}`;
+
+  const card = document.getElementById('flashcard');
+  card.classList.remove('flipped');
+}
+
+document.getElementById('flashcardContainer').addEventListener('click', () => {
+  document.getElementById('flashcard').classList.toggle('flipped');
+});
+document.getElementById('fcNext').addEventListener('click', () => {
+  fcIndex = (fcIndex + 1) % fcOrder.length;
+  renderFlashcard();
+});
+document.getElementById('fcPrev').addEventListener('click', () => {
+  fcIndex = (fcIndex - 1 + fcOrder.length) % fcOrder.length;
+  renderFlashcard();
+});
+document.getElementById('fcShuffle').addEventListener('click', () => {
+  fcOrder = filteredBreeds.map((_, i) => i);
+  shuffleArray(fcOrder);
+  fcIndex = 0;
+  renderFlashcard();
+});
+
+// ===== QUIZ =====
+function generateQuizQuestion() {
+  if (filteredBreeds.length < 4) return;
+  const correct = filteredBreeds[Math.floor(Math.random() * filteredBreeds.length)];
+  const options = [correct];
+  const pool = filteredBreeds.filter(b => b.id !== correct.id);
+  shuffleArray(pool);
+  for (let i = 0; i < Math.min(3, pool.length); i++) options.push(pool[i]);
+  shuffleArray(options);
+
+  quizState.current = { correct, options };
+
+  document.getElementById('quizImg').src = getBreedImage(correct);
+  const optsEl = document.getElementById('quizOptions');
+  optsEl.innerHTML = options.map((opt, i) => `
+    <button class="quiz-option" data-idx="${i}" data-id="${opt.id}">${opt.name}</button>
+  `).join('');
+
+  optsEl.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.addEventListener('click', () => handleQuizAnswer(btn));
+  });
+}
+
+function handleQuizAnswer(btn) {
+  const selectedId = parseInt(btn.dataset.id);
+  const correctId = quizState.current.correct.id;
+  quizState.total++;
+
+  const allBtns = document.querySelectorAll('.quiz-option');
+  allBtns.forEach(b => {
+    b.disabled = true;
+    if (parseInt(b.dataset.id) === correctId) b.classList.add('correct');
+  });
+
+  if (selectedId === correctId) {
+    quizState.score++;
+    btn.classList.add('correct');
+  } else {
+    btn.classList.add('wrong');
+  }
+
+  document.getElementById('quizScore').textContent = `${quizState.score} / ${quizState.total}`;
+  learnedSet.add(correctId);
+  saveProgress();
+}
+
+document.getElementById('quizNext').addEventListener('click', generateQuizQuestion);
+
+// ===== STATS =====
+function renderStats() {
+  const counts = { akc: 0, fci: 0, non: 0, extinct: 0 };
+  BREEDS.forEach(b => { if (counts[b.registry] !== undefined) counts[b.registry]++; });
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat-item s1"><div class="stat-value">${counts.akc}</div><div class="stat-label">AKC Breeds</div></div>
+    <div class="stat-item s2"><div class="stat-value">${counts.fci}</div><div class="stat-label">FCI Breeds</div></div>
+    <div class="stat-item s3"><div class="stat-value">${counts.non}</div><div class="stat-label">Non-Recog</div></div>
+    <div class="stat-item s4"><div class="stat-value">${counts.extinct}</div><div class="stat-label">Extinct</div></div>
+  `;
+
+  const top10 = BREEDS.filter(b => b.registry === 'akc' && b.rank).sort((a, b) => a.rank - b.rank).slice(0, 10);
+  document.getElementById('top10List').innerHTML = top10.map(b =>
+    `<div style="padding:4px 0;border-bottom:1px solid var(--border);"><span style="color:var(--gold);font-weight:bold;">#${b.rank}</span> <span style="color:var(--text);font-weight:600;">${b.name}</span></div>`
+  ).join('');
+
+  const learned = learnedSet.size;
+  const total = BREEDS.length;
+  const pct = total > 0 ? Math.round((learned / total) * 100) : 0;
+  document.getElementById('progressContent').innerHTML = `
+    <p style="margin-bottom:8px;">You've viewed <strong style="color:var(--gold);">${learned}</strong> of <strong style="color:var(--text);">${total}</strong> breeds (${pct}%)</p>
+    <div style="background:var(--card-2);border-radius:12px;height:16px;overflow:hidden;">
+      <div style="background:var(--gold);height:100%;width:${pct}%;border-radius:12px;transition:width 0.5s;"></div>
+    </div>
+  `;
+}
+
+// ===== UTILITIES =====
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function saveProgress() {
+  try { localStorage.setItem('breedScholar_learned', JSON.stringify([...learnedSet])); } catch(e) {}
+}
+function loadProgress() {
+  try {
+    const data = localStorage.getItem('breedScholar_learned');
+    if (data) learnedSet = new Set(JSON.parse(data));
+  } catch(e) {}
+}
+
+// ===== NAVIGATION =====
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const mode = tab.dataset.tab;
+    document.querySelectorAll('.mode').forEach(m => m.style.display = 'none');
+    document.getElementById(mode + 'Mode').style.display = 'block';
+
+    if (mode === 'browse') renderBrowse();
+    if (mode === 'flashcard') { filteredBreeds = getActiveBreeds(); initFlashcards(); }
+    if (mode === 'quiz') { filteredBreeds = getActiveBreeds(); generateQuizQuestion(); }
+    if (mode === 'stats') renderStats();
+  });
+});
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  searchQuery = e.target.value.toLowerCase();
+  renderBrowse();
+});
+
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.chip').forEach(c => {
+      c.className = 'chip';
+    });
+    const filter = chip.dataset.filter;
+    currentFilter = filter;
+    if (filter === 'all') chip.classList.add('active-all');
+    else chip.classList.add('active-' + filter);
+    fcOrder = [];
+    renderBrowse();
+  });
+});
+
+function getActiveBreeds() {
+  return BREEDS.filter(b => {
+    const matchFilter = currentFilter === 'all' || b.registry === currentFilter;
+    const matchSearch = !searchQuery || b.name.toLowerCase().includes(searchQuery);
+    return matchFilter && matchSearch;
+  });
+}
+
+// ===== INIT =====
+function init() {
+  loadProgress();
+  renderBrowse();
+  renderStats();
+}
+
+// Wait for data to be injected
+if (typeof window.__BREED_DATA_INJECTED__ !== 'undefined' && window.__BREED_DATA_INJECTED__) {
+  init();
+} else {
+  window.addEventListener('load', () => {
+    if (typeof window.__BREED_DATA_INJECTED__ !== 'undefined' && window.__BREED_DATA_INJECTED__) {
+      init();
+    } else {
+      setTimeout(init, 100);
+    }
+  });
+}
+</script>
+</body>
+</html>

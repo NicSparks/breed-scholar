@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐕 Breed Scholar — Debug Test</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0f; color: #e8e8f0; font-family: sans-serif; padding: 20px; }
+  .test { background: #14141f; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #252535; }
+  .pass { color: #27ae60; }
+  .fail { color: #e74c3c; }
+  .info { color: #3498db; }
+</style>
+</head>
+<body>
+<h1>🐕 Breed Scholar — Debug Test</h1>
+<div id="results"></div>
+
+<script>
+const results = document.getElementById('results');
+
+function test(name, fn) {
+  try {
+    const result = fn();
+    results.innerHTML += `<div class="test ${result ? 'pass' : 'fail'}'>${result ? '✓' : '✗'} ${name}</div>`;
+  } catch(e) {
+    results.innerHTML += `<div class="test fail">✗ ${name}: ${e.message}</div>`;
+  }
+}
+
+// Test 1: Check if BREEDS array exists
+test('BREEDS array exists', () => {
+  return typeof BREEDS !== 'undefined' && Array.isArray(BREEDS);
+});
+
+// Test 2: Check breed count
+test('Has 705 breeds', () => {
+  return BREEDS && BREEDS.length === 705;
+});
+
+// Test 3: Check first breed
+test('First breed is valid', () => {
+  return BREEDS && BREEDS[0] && BREEDS[0].name && BREEDS[0].registry;
+});
+
+// Test 4: Check registry types
+test('Has AKC, FCI, Non breeds', () => {
+  if (!BREEDS) return false;
+  const akc = BREEDS.some(b => b.registry === 'akc');
+  const fci = BREEDS.some(b => b.registry === 'fci');
+  const non = BREEDS.some(b => b.registry === 'non');
+  return akc && fci && non;
+});
+
+// Test 5: Check images
+test('All breeds have images', () => {
+  if (!BREEDS) return false;
+  return BREEDS.every(b => b.image && b.image.length > 0);
+});
+
+// Test 6: Check for problematic characters
+test('No problematic characters in names', () => {
+  if (!BREEDS) return false;
+  const bad = BREEDS.filter(b => 
+    b.name.includes('\n') || 
+    b.name.includes('\r') || 
+    b.name.includes('`') ||
+    (b.name.includes('${') && b.name.includes('}'))
+  );
+  return bad.length === 0;
+});
+
+// Test 7: Check localStorage
+test('localStorage works', () => {
+  try {
+    localStorage.setItem('test', 'value');
+    localStorage.removeItem('test');
+    return true;
+  } catch(e) {
+    return false;
+  }
+});
+
+// Show sample breeds
+if (BREEDS && BREEDS.length > 0) {
+  results.innerHTML += `<div class="test info">📊 Sample breeds:</div>`;
+  for (let i = 0; i < Math.min(10, BREEDS.length); i++) {
+    const b = BREEDS[i];
+    results.innerHTML += `<div class="test">${b.id}. ${b.name} (${b.registry})${b.rank ? ' #'+b.rank : ''}</div>`;
+  }
+}
+</script>
+</body>
+</html>

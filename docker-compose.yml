@@ -1,0 +1,15 @@
+name: breed-scholar
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:5000"
+    volumes:
+      - ./data:/data
+    environment:
+      - DATABASE_URL=/data/dog_breeds.db
+      - STATIC_DIR=/data/static
+      - THUMBS_DIR=/data/static/thumbs
+      - FULL_DIR=/data/static/full
+    restart: unless-stopped
