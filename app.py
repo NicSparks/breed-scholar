@@ -1,3 +1,4 @@
+import json
 import sqlite3
 from pathlib import Path
 
@@ -221,6 +222,33 @@ def manifest():
                 "purpose": "any maskable"
             }
         ]
+    })
+
+
+@app.route('/api/quiz/questions')
+def quiz_questions():
+    import random
+    quiz_path = BASE_DIR / 'flashcards.json'
+    if not quiz_path.exists():
+        return jsonify({'error': 'Quiz data not found'}), 404
+
+    with open(quiz_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    cards = data.get('cards', [])
+    limit = int(request.args.get('limit', min(20, len(cards))))
+    q_type = request.args.get('type', '').strip().lower()
+
+    if q_type:
+        cards = [c for c in cards if c.get('type', '').lower() == q_type]
+
+    random.shuffle(cards)
+    cards = cards[:limit]
+
+    return jsonify({
+        'questions': cards,
+        'total': len(cards),
+        'available': len(data.get('cards', []))
     })
 
 

@@ -368,7 +368,10 @@
       <div class="quiz-score-value" id="quizScore">0 / 0</div>
       <div class="quiz-score-label">Correct Answers</div>
     </div>
-    <img class="quiz-img" id="quizImg" src="" alt="Quiz breed">
+    <div class="modal-section" style="margin-bottom:10px;">
+      <div class="modal-section-title">Question</div>
+      <div class="modal-fact" id="quizQuestion">—</div>
+    </div>
     <div class="quiz-options" id="quizOptions"></div>
     <div class="flashcard-controls" style="margin-top:18px;">
       <button class="btn btn-primary" id="quizNext">Next Question →</button>
@@ -584,39 +587,58 @@ document.getElementById('fcShuffle').addEventListener('click', () => {
 });
 
 function generateQuizQuestion() {
-  if (filteredBreeds.length < 2) return;
-  const correct = filteredBreeds[Math.floor(Math.random() * filteredBreeds.length)];
-  const options = [correct];
-  const pool = filteredBreeds.filter(b => b.id !== correct.id);
-  shuffleArray(pool);
-  for (let i = 0; i < Math.min(3, pool.length); i++) options.push(pool[i]);
-  shuffleArray(options);
+  if (!quizState.questions || quizState.index >= quizState.questions.length) {
+    quizState.questions = [];
+    quizState.index = 0;
+  }
 
-  quizState.current = { correct, options };
+  if (quizState.index === 0 || quizState.index >= quizState.questions.length) {
+    const types = ['breed-to-group', 'breed-to-country', 'breed-to-size', 'group-to-breed', 'fact-to-breed'];
+    const qType = types[Math.floor(Math.random() * types.length)];
+    const resp = fetch('/api/quiz/questions?limit=10&type=' + encodeURIComponent(qType));
+    resp.then(r => r.json()).then(data => {
+      quizState.questions = data.questions || [];
+      quizState.index = 0;
+      quizState.score = 0;
+      quizState.total = 0;
+      document.getElementById('quizScore').textContent = '0 / 0';
+      renderQuizQuestion();
+    });
+    return;
+  }
 
-  document.getElementById('quizImg').src = getThumbUrl(correct);
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  if (!quizState.questions || quizState.index >= quizState.questions.length) return;
+  const q = quizState.questions[quizState.index];
+  const answer = q.answer;
+  const choices = q.choices || [];
+
+  document.getElementById('quizQuestion').textContent = q.question;
+
   const optsEl = document.getElementById('quizOptions');
-  optsEl.innerHTML = options.map((opt, i) =>
-    '<button class="quiz-option" data-idx="' + i + '" data-id="' + opt.id + '">' + opt.name + '</button>'
+  optsEl.innerHTML = choices.map((opt, i) =>
+    '<button class="quiz-option" data-idx="' + i + '">' + opt + '</button>'
   ).join('');
 
   optsEl.querySelectorAll('.quiz-option').forEach(btn => {
-    btn.addEventListener('click', () => handleQuizAnswer(btn));
+    btn.addEventListener('click', () => handleQuizAnswer(btn, answer));
   });
 }
 
-function handleQuizAnswer(btn) {
-  const selectedId = parseInt(btn.dataset.id);
-  const correctId = quizState.current.correct.id;
+function handleQuizAnswer(btn, answer) {
+  const selected = btn.textContent.trim();
   quizState.total++;
 
   const allBtns = document.querySelectorAll('.quiz-option');
   allBtns.forEach(b => {
     b.disabled = true;
-    if (parseInt(b.dataset.id) === correctId) b.classList.add('correct');
+    if (b.textContent.trim() === answer) b.classList.add('correct');
   });
 
-  if (selectedId === correctId) {
+  if (selected === answer) {
     quizState.score++;
     btn.classList.add('correct');
   } else {
@@ -624,8 +646,7 @@ function handleQuizAnswer(btn) {
   }
 
   document.getElementById('quizScore').textContent = quizState.score + ' / ' + quizState.total;
-  learnedSet.add(correctId);
-  saveProgress();
+  quizState.index++;
 }
 
 document.getElementById('quizNext').addEventListener('click', generateQuizQuestion);
