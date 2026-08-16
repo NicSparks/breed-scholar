@@ -21,7 +21,7 @@ def create_icon(size, path):
     try:
         font_size = size // 3
         font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", font_size)
-    except Exception:
+    except OSError:
         font = ImageFont.load_default()
     text = "B"
     bbox = draw.textbbox((0, 0), text, font=font)

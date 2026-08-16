@@ -163,7 +163,8 @@ def rebuild_database():
             ['python3', str(BASE_DIR / 'rebuild_database.py')],
             capture_output=True,
             text=True,
-            timeout=300
+            timeout=300,
+            check=False
         )
         return jsonify({
             'success': True,
@@ -172,7 +173,7 @@ def rebuild_database():
         })
     except subprocess.TimeoutExpired:
         return jsonify({'success': False, 'error': 'Rebuild timed out'}), 500
-    except Exception as e:
+    except (OSError, ValueError, RuntimeError) as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
 

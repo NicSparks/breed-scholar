@@ -37,7 +37,7 @@ def create_placeholder_thumb(breed_id, breed_name):
     # Try to use a font, fallback to default
     try:
         font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 60)
-    except Exception:
+    except OSError:
         font = ImageFont.load_default()
     
     # Center text
@@ -77,7 +77,7 @@ def create_placeholder_full(breed_id, breed_name):
     # Try to use a font
     try:
         font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 120)
-    except Exception:
+    except OSError:
         font = ImageFont.load_default()
     
     # Center text
